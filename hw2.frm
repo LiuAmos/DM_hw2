@@ -93,13 +93,60 @@ Dim ewresult(7, 8) As Double
 Dim efresult(7, 8) As Double
 Dim choicefb As Integer
 
-Private Function h(ByRef doublearr() As Double)
-Dim data2darray(1483) As Double
+Static Function h(ByRef result() As Double)
+Dim tempresult(7, 8) As Double
+Dim i1, i2, i3, i4, i5, i6, i7, i8, i9, i10 As Integer
+Dim interval As String
+Dim tempdata2darray As Double
+i1 = 0
+i2 = 0
+i3 = 0
+i4 = 0
+i5 = 0
+i6 = 0
+i7 = 0
+i8 = 0
+i9 = 0
+i10 = 0
 
+For i = 0 To 7
+    For j = 0 To 8
+        tempresult(i, j) = result(i, j)
+    Next j
+Next i
+
+For i = 0 To 1483
+tempdata2darray = CDbl(data2darray(1, i))
+If (tempdata2darray < tempresult(0, 0)) Then
+    i1 = i1 + 1
+    ElseIf (tempdata2darray >= tempresult(0, 0) And tempdata2darray < tempresult(0, 1)) Then
+        i2 = i2 + 1
+        ElseIf (tempdata2darray >= tempresult(0, 1) And tempdata2darray < tempresult(0, 2)) Then
+            i3 = i3 + 1
+            ElseIf (tempdata2darray >= tempresult(0, 2) And tempdata2darray < tempresult(0, 3)) Then
+                i4 = i4 + 1
+                ElseIf (tempdata2darray >= tempresult(0, 3) And tempdata2darray < tempresult(0, 4)) Then
+                    i5 = i5 + 1
+                    ElseIf (tempdata2darray >= tempresult(0, 4) And tempdata2darray < tempresult(0, 5)) Then
+                        i6 = i6 + 1
+                        ElseIf (tempdata2darray >= tempresult(0, 5) And tempdata2darray < tempresult(0, 6)) Then
+                            i7 = i7 + 1
+                            ElseIf (tempdata2darray >= tempresult(0, 6) And tempdata2darray < tempresult(0, 7)) Then
+                                i8 = i8 + 1
+                                ElseIf (tempdata2darray >= tempresult(0, 7) And tempdata2darray < tempresult(0, 8)) Then
+                                    i9 = i9 + 1
+Else
+    i10 = i10 + 1
+End If
+Next i
+interval = CStr(i1) + "," + CStr(i2) + "," + CStr(i3) + "," + CStr(i4) + "," + CStr(i5) + "," + CStr(i6) + "," + CStr(i7) + "," + CStr(i8) + "," + CStr(i9) + "," + CStr(i10)
+h = interval 'return
 
 End Function
 
-
+Static Function Log02(ByVal x As Double)
+   Log02 = Log(x) / Log(2#) ' return
+End Function
 
 
 Private Sub datanumber_Change()
@@ -204,6 +251,8 @@ End Sub
 
 Private Sub forward_Click()
 Dim discreresult(7, 8) As Double
+Dim eachinterval As String
+
 If choicefb = 0 Then
 For i = 0 To 7
 For j = 0 To 8
@@ -217,7 +266,7 @@ discreresult(i, j) = efresult(i, j)
 Next j
 Next i
 Else
-
+'entropy
 End If
 
 For i = 0 To 7
@@ -226,6 +275,9 @@ For j = 0 To 8
 List1.AddItem discreresult(i, j)
 Next j
 Next i
+
+eachinterval = h(discreresult)
+List1.AddItem eachinterval
 
 End Sub
 
