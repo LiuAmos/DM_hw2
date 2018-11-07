@@ -6,8 +6,8 @@ Begin VB.Form Form1
    ClientTop       =   450
    ClientWidth     =   18555
    LinkTopic       =   "Form1"
-   ScaleHeight     =   9720
-   ScaleWidth      =   18555
+   ScaleHeight     =   15630
+   ScaleWidth      =   28560
    StartUpPosition =   3  '系統預設值
    Begin VB.TextBox datanumber 
       Height          =   495
@@ -86,6 +86,12 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+'操作方式
+'須手動輸入檔名(yeast.txt)以及資料筆數(1484)
+'看equalwidth的forward跟backward按鈕順序(read->Equal_width->forward or backward)
+'看完equalwidth欲看equalfrequency請關掉再重新run一次
+'看equalfrequency的forward跟backward的按鈕順序(read->Equal_frequency->forward or backward)
+'entropy未實做成功,故按鈕無效用
 Dim file As String
 Dim datanum As Integer
 Dim data2darray(9, 1483) As String
@@ -99,7 +105,6 @@ Dim attr9array(9) As String
 Dim attr9counter(9) As Double
 Dim totaluac(7) As Double
 Dim totaluab(7, 7) As Double
-'= {"CYT","NUC","MIT","ME3","ME2","ME1","EXC","VAC","POX","ERL"}
 Static Function subsetgoodness(ByRef subset() As Double)
 Dim tempsubset() As Double
 Dim totalgoodnessDenominator As Double
@@ -120,7 +125,7 @@ totalgoodnessDenominator = totalgoodnessDenominator ^ (1 / 2)
 For i = 0 To UBound(tempsubset)
     totalgoodnessNumerator = totalgoodnessNumerator + totaluac(tempsubset(i))
 Next i
-'List1.AddItem UBound(tempsubset) + 1
+
 totalgoodnessValue = (totalgoodnessNumerator / totalgoodnessDenominator)
 
 subsetgoodness = totalgoodnessValue
@@ -140,7 +145,7 @@ For i = 0 To UBound(tempgoodarray)
 If tempmax < tempgoodarray(i) Then
 tempmax = tempgoodarray(i)
 attrmax = tempattrarray(i)
-'tempattr = i
+
 End If
 Next i
 
@@ -190,9 +195,7 @@ Dim deleteone() As Double
 Dim tempgoodness() As Double
 Dim tempattr() As Double
 Dim counter As Double
-'Dim tempgmaxstr as string
-'Dim tempav() as double
-'tempgmaxstr=""
+
 For i = 0 To 7
 resultattr(i) = -1
 resultmaxvalue(i) = -1
@@ -205,32 +208,17 @@ ReDim deleteone(6 - i)
 Dim setnum() As Double '準備要扣掉一個attr前的完整版
 ReDim tempgoodness(7 - i)
 ReDim tempattr(7 - i) '候選被踢的attr
-'List1.AddItem UBound(setnum) + 1
 
 
-'tempgmax=0
+
+
 '接著為該陣列塞入目前已選的attr
 
 '找出要留下來的attr
 setnum() = unpickAttr(resultattr)
 
-'If i = 0 Then
-'    'resultattr(i) = 5
-'    GoTo izero
-'End If
-'塞入還未被扣掉的attr
-'記得想全滿的狀況!!!!
-'   For j = 0 To 7
-'        If resultattr(j) <> -1 Then
-'            setnum(j) = resultattr(j)
-'        End If
-'   Next j
-'izero:
-'跑unpickAttr()回傳還未被選的attr陣列
 
-'For j = 0 To UBound(tempunpickAttr)
-'    List1.AddItem tempunpickAttr(j)
-'Next j
+
 
 '每個attr都刪看看
     For j = 0 To UBound(setnum)
@@ -257,7 +245,7 @@ resultattr(i) = CDbl(tempav(0))
 resultmaxvalue(i) = CDbl(tempav(1))
 
 
-'記得寫停止條件
+
 If i > 0 Then
 If resultmaxvalue(i) < resultmaxvalue(i - 1) Then
 Exit For
@@ -266,9 +254,35 @@ End If
 
 Next i
 
-For i = 0 To 7
-    List1.AddItem resultattr(i) + 1
+
+Dim inputarr(7) As Double
+For i = 0 To 5
+
+    Dim printresult() As Double
+    Dim attrstr As String
+    attrstr = ""
+    For j = 0 To 7
+    inputarr(j) = -1
+    Next j
+    
+    For j = 0 To i
+    inputarr(j) = resultattr(j)
+    Next j
+    printresult() = unpickAttr(inputarr)
+    For j = 0 To UBound(printresult)
+    attrstr = attrstr + CStr(printresult(j) + 1)
+    Next j
+    List1.AddItem "attribute:" + attrstr
     List1.AddItem resultmaxvalue(i)
+    If i = 0 Then
+    GoTo nozero
+    End If
+    
+    If resultmaxvalue(i) < resultmaxvalue(i - 1) Then
+    Exit For
+    End If
+    
+nozero:
 Next i
 
 '動態陣列測試
@@ -282,65 +296,15 @@ totalsetb = "End"
 End Function
 
 Static Function totalset()
-'Dim subsetmaxvalue(7) As Double '每個set數量的最大值
-'Dim subsetresultattr(7) As Double '每個set的最大值新選了哪個attr
-'Dim tempavstr As String
-'Dim tempav() As String
-'Dim tempgoodness(7) As Double
-'Dim tempmax As Double
-'Dim subset1attr(7) As Double
-'----------------------------
-'Dim subset1(0) As Double
-'For i = 0 To 7
-'tempgoodness(i) = 0
-'subsetresultattr(i) = 0
-'subsetmaxvalue(i) = 0
-'Next i
-'
-'For i = 0 To 7
-'    subset1attr(i) = i
-'    subset1(0) = i
-'    tempgoodness(i) = subsetgoodness(subset1)
-'    'List1.AddItem tempgoodness(i)
-'Next i
-'tempavstr = gmax(tempgoodness, subset1attr)
-'tempav = Split(tempavstr, ",")
-'subsetresultattr(0) = CDbl(tempav(0))
-'subsetmaxvalue(0) = CDbl(tempav(1))
-'List1.AddItem subsetresultattr(0)
-'List1.AddItem subsetmaxvalue(0)
 
-'---------------------
-'Dim subset1(1) As Double
-'subset1(0) = subsetresultattr(0)
-'
-'For i = 0 To 7
-'tempgoodness(i) = 0
-'subsetresultattr(i) = 0
-'subsetmaxvalue(i) = 0
-'Next i
-'
-'For i = 0 To 7
-'    subset1attr(i) = i
-'    subset1(1) = i
-'    tempgoodness(i) = subsetgoodness(subset1)
-'    'List1.AddItem tempgoodness(i)
-'Next i
 
-'找剩下哪些attr還沒被選到,傳入以選名單,回傳未選名單
-
-'未完待續
-'記得改動態陣列
-
-Dim resultattr(7) As Double '每個set的最大值新選了哪個attr
+Dim resultattr(7) As Double '每個set的最大值新選的那個attr
 Dim resultmaxvalue(7) As Double '每個set數量的最大值
 Dim setnum() As Double
 
 Dim tempgoodness() As Double
 Dim tempattr() As Double
-'Dim tempgmaxstr as string
-'Dim tempav() as double
-'tempgmaxstr=""
+
 For i = 0 To 7
 resultattr(i) = -1
 resultmaxvalue(i) = -1
@@ -353,13 +317,12 @@ ReDim setnum(i) '丟入subsetgoodness的陣列
 Dim tempunpickAttr() As Double
 ReDim tempgoodness(7 - i)
 ReDim tempattr(7 - i)
-'List1.AddItem UBound(setnum) + 1
 
-'tempgmax=0
+
+
 '接著為該陣列塞入目前已選的attr
-'注意i=0的情況
+
 If i = 0 Then
-    'resultattr(i) = 5
     GoTo izero
 End If
 '把已經選好的resultattr丟給setnum
@@ -369,9 +332,7 @@ End If
 izero:
 '跑unpickAttr()回傳還未被選的attr陣列
 tempunpickAttr() = unpickAttr(resultattr)
-'For j = 0 To UBound(tempunpickAttr)
-'    List1.AddItem tempunpickAttr(j)
-'Next j
+
 
 '跑回圈幫setnum(i)塞入不同還未被選的attr
     For j = 0 To UBound(tempunpickAttr)
@@ -385,7 +346,7 @@ resultattr(i) = CDbl(tempav(0))
 resultmaxvalue(i) = CDbl(tempav(1))
 
 
-'記得寫停止條件
+
 If i > 0 Then
 If resultmaxvalue(i) < resultmaxvalue(i - 1) Then
 Exit For
@@ -394,10 +355,31 @@ End If
 
 Next i
 
-For i = 0 To 7
-    List1.AddItem resultattr(i) + 1
-    List1.AddItem resultmaxvalue(i)
-Next i
+
+
+List1.AddItem "attribute:" + CStr(resultattr(0) + 1)
+List1.AddItem resultmaxvalue(0)
+
+List1.AddItem "attribute:" + CStr(resultattr(0) + 1) + CStr(resultattr(1) + 1)
+
+List1.AddItem resultmaxvalue(1)
+
+List1.AddItem "attribute:" + CStr(resultattr(0) + 1) + CStr(resultattr(1) + 1) + CStr(resultattr(2) + 1)
+List1.AddItem resultmaxvalue(2)
+
+List1.AddItem "attribute:" + CStr(resultattr(0) + 1) + CStr(resultattr(1) + 1) + CStr(resultattr(2) + 1) + CStr(resultattr(3) + 1)
+List1.AddItem resultmaxvalue(3)
+
+List1.AddItem "attribute:" + CStr(resultattr(0) + 1) + CStr(resultattr(1) + 1) + CStr(resultattr(2) + 1) + CStr(resultattr(3) + 1) + CStr(resultattr(4) + 1)
+List1.AddItem resultmaxvalue(4)
+If choicefb = 0 Then
+GoTo choicefbzero
+End If
+List1.AddItem "attribute:" + CStr(resultattr(0) + 1) + CStr(resultattr(1) + 1) + CStr(resultattr(2) + 1) + CStr(resultattr(3) + 1) + CStr(resultattr(4) + 1) + CStr(resultattr(5) + 1)
+List1.AddItem resultmaxvalue(5)
+choicefbzero:
+
+
 
 '動態陣列測試
 'Dim testnum() As Double
@@ -417,17 +399,14 @@ Dim hab As Double
 Dim eachinterval As String
 Dim HAB2darray() As Double
 
-'eachinterval = CountEachAttr(discreresult)
+
 ha = totalh(num1)
 hb = totalh(num2)
 hab = totalhab(num1, num2)
 
-'新增的
+
 If ha = 0 And hb = 0 Then
-uabresult = 1 '要注意一下
-'If hab = 0 Then
-'uabresult = 1
-'End If
+uabresult = 1
 GoTo uzero
 End If
 
@@ -452,15 +431,12 @@ eachh = 0
 triminterval = Trim(totalinterval)
 totalstring() = Split(triminterval, " ")
 
-'For i = 0 To 7
-'List1.AddItem totalstring(i)
-'Next i
+
 
 eachstring() = Split(totalstring(num), ",")
 
 For i = 0 To 9
     prop = CDbl(eachstring(i)) / 1484
-    'List1.AddItem prop
     temp = -(prop * Log02(prop))
     eachh = eachh + temp
 Next i
@@ -475,15 +451,10 @@ Dim totalhtwo As Double
 Dim tmpcounter2darray() As Double
 tmpcounter2darray() = counter2darray()
 
-'For i = 0 To 9
-'    For j = 0 To 9
-'        List1.AddItem tmpcounter2darray(i, j)
-'    Next j
-'Next i
+
 totalhtwo = 0
 For i = 0 To 9
     For j = 0 To 9
-        'List1.AddItem tmpcounter2darray(i, j)
         temp = -(tmpcounter2darray(i, j) * Log02(tmpcounter2darray(i, j)))
         totalhtwo = totalhtwo + temp
     Next j
@@ -497,8 +468,7 @@ Dim attr9temp As String
 Dim num1result(10) As Double
 Dim attr9result(9) As String 'attr9的各項名稱
 Dim counter2darray(9, 9) As Double
-'Dim testcounter As Double
-'testcounter = 0
+
 For i = 0 To 9
     For j = 0 To 9
         counter2darray(i, j) = 0
@@ -513,11 +483,6 @@ num1result(10) = result(num1, 10)
 num1result(0) = result(num1, 9)
 attr9result(9) = attr9(9)
 
-'For i = 0 To 10
-'    List1.AddItem num1result(i)
-''    List1.AddItem attr9result(i)
-'Next i
-
 For i = 0 To 1483
     num1temp = Val(data2darray(num1 + 1, i))
     attr9temp = data2darray(9, i)
@@ -526,7 +491,6 @@ For i = 0 To 1483
             For k = 0 To 9
                 If attr9temp = attr9result(k) Then
                     counter2darray(j, k) = counter2darray(j, k) + 1
-                    'testcounter = testcounter + 1
                 End If
             Next k
         End If
@@ -537,37 +501,18 @@ For i = 0 To 1483
         For k = 0 To 9
             If attr9temp = attr9result(k) Then
                 counter2darray(9, k) = counter2darray(9, k) + 1
-                'testcounter = testcounter + 1
             End If
         Next k
     End If
-'    For j = 0 To 9
-'
-'      If attr9temp = attr9result(j) Then
-'        For k = 0 To 9
-'           If num1temp >= Val(num1result(k)) And num1temp < Val(num1result(k + 1)) Then
-'              counter2darray(j, k) = counter2darray(j, k) + 1
-'              testcounter = testcounter + 1
-'           End If
-'
-'           If num1temp >= Val(num1result(9)) Then
-'             counter2darray(j, 9) = counter2darray(j, 9) + 1
-'             testcounter = testcounter + 1
-'           End If
-'
-'        Next k
-'      End If
-'    Next j
     
 Next i
 
 For i = 0 To 9
     For j = 0 To 9
         counter2darray(i, j) = counter2darray(i, j) / 1484
-        'List1.AddItem counter2darray(i, j)
     Next j
 Next i
-'List1.AddItem testcounter
+
 countac = counter2darray
 End Function
 Static Function CountTwoAttr(ByRef result() As Double, ByVal num1 As Integer, ByVal num2 As Integer)
@@ -578,7 +523,7 @@ Dim num1result(10) As Double
 Dim num2result(10) As Double
 Dim counter2darray(9, 9) As Double
 Dim testcounter As Double
-'testcounter = 0
+
 
 For i = 0 To 9
 For j = 0 To 9
@@ -596,13 +541,6 @@ num1result(0) = result(num1, 9)
 num2result(10) = result(num2, 10)
 num2result(0) = result(num2, 9)
 
-'For i = 0 To 10
-'    List1.AddItem num1result(i)
-'Next i
-'
-'For i = 0 To 10
-'    List1.AddItem num2result(i)
-'Next i
 
 For i = 0 To 1483
     num1temp = Val(data2darray(num1 + 1, i))
@@ -612,7 +550,6 @@ For i = 0 To 1483
             For k = 0 To 9
                 If num2temp >= Val(num2result(k)) And num2temp < Val(num2result(k + 1)) Then
                     counter2darray(j, k) = counter2darray(j, k) + 1
-                    'testcounter = testcounter + 1
                 End If
             Next k
         End If
@@ -620,14 +557,12 @@ For i = 0 To 1483
     
     If num1temp = Val(num1result(10)) And num2temp = Val(num2result(10)) Then
         counter2darray(9, 9) = counter2darray(9, 9) + 1
-        'testcounter = testcounter + 1
     End If
     
     If num1temp = Val(num1result(10)) And num2temp <> Val(num2result(10)) Then
         For k = 0 To 9
             If num2temp >= Val(num2result(k)) And num2temp < Val(num2result(k + 1)) Then
                 counter2darray(9, k) = counter2darray(9, k) + 1
-                'testcounter = testcounter + 1
             End If
         Next k
     End If
@@ -636,20 +571,18 @@ For i = 0 To 1483
         For k = 0 To 9
             If num1temp >= Val(num1result(k)) And num1temp < Val(num1result(k + 1)) Then
                 counter2darray(k, 9) = counter2darray(k, 9) + 1
-                'testcounter = testcounter + 1
             End If
         Next k
     End If
     
 Next i
 
-'List1.AddItem testcounter
+
 
 
 For i = 0 To 9
     For j = 0 To 9
         counter2darray(i, j) = counter2darray(i, j) / 1484
-        'List1.AddItem counter2darray(i, j)
     Next j
 Next i
 
@@ -663,18 +596,16 @@ Dim counter(10) As Double
 Dim interval As String
 Dim totalinterval As String
 Dim temp As Variant
-'Dim testcounter As Double
+
 
 
 For i = 0 To 7
     For j = 0 To 10
         tempresult(i, j) = result(i, j)
-        'List1.AddItem tempresult(i, j)
     Next j
 Next i
 
 For k = 1 To 8
-'testcounter = 0
 For i = 0 To 10
 counter(i) = 0
 Next i
@@ -684,67 +615,29 @@ Next i
 For i = 0 To 1483
     temp = Val(data2darray(k, i))
 
-'If k = 8 Then
-'List1.AddItem temp
-'End If
-'    If k = 8 Then
-'    List1.AddItem temp
-''        If temp = Val(tempresult(7, 2)) Then
-''        List1.AddItem temp
-''
-''        End If
-'    End If
+
     
     For j = 0 To 7
-        'If (k - 1) = 0 Then
-        'List1.AddItem tempresult(k - 1, j + 1)
-        'End If
-        If temp >= Val(tempresult(k - 1, j)) And temp < Val(tempresult(k - 1, j + 1)) Then
 
-        'GoTo continue
-        'List1.AddItem temp
-        'List1.AddItem (j + 2)
+        If temp >= Val(tempresult(k - 1, j)) And temp < Val(tempresult(k - 1, j + 1)) Then
         counter(j + 2) = counter(j + 2) + 1
-        'testcounter = testcounter + 1
-        
-        'test
-'        If k = 4 Or k = 8 Then
-'            If temp = 0.3 Then
-'            counter(j + 2) = counter(j + 2) - 1
-'            counter(j + 3) = counter(j + 3) + 1
-'            End If
-'        End If
-        
         Exit For
         End If
-'continue:
     Next j
     
     If temp >= Val(tempresult(k - 1, 8)) Then
         counter(10) = counter(10) + 1
-        'testcounter = testcounter + 1
     End If
     If temp < Val(tempresult(k - 1, 0)) And temp >= Val(tempresult(k - 1, 9)) Then
         counter(1) = counter(1) + 1
-        'testcounter = testcounter + 1
-        'List1.AddItem temp
     End If
 Next i
 
 
-'記的助解掉
-'For i = 1 To 10
-'counter(i) = counter(i) / 1484
-'List1.AddItem counter(i)
-'Next i
-
 interval = CStr(counter(1)) + "," + CStr(counter(2)) + "," + CStr(counter(3)) + "," + CStr(counter(4)) + "," + CStr(counter(5)) + "," + CStr(counter(6)) + "," + CStr(counter(7)) + "," + CStr(counter(8)) + "," + CStr(counter(9)) + "," + CStr(counter(10))
-'For i = 1 To 10
-'List1.AddItem counter(i)
-'Next i
-'List1.AddItem ""
+
 totalinterval = totalinterval + interval + " "
-'List1.AddItem testcounter
+
 Next k
 
 CountEachAttr = totalinterval 'return
@@ -761,7 +654,7 @@ End Function
 
 
 Private Sub backward_Click()
-'Dim discreresult(7, 10) As Double
+
 List1.Clear
 Dim eachinterval As String
 Dim eachh As Double
@@ -798,34 +691,6 @@ Else
 End If
 
 
-'For i = 0 To 10
-'List1.AddItem discreresult(7, i)
-'Next i
-
-
-
-'For i = 0 To 1483
-''If data2darray(4, i) = "" Then
-''List1.AddItem i
-''End If
-'List1.AddItem data2darray(4, i)
-'Next i
-
-
-'For i = 0 To 7
-'For j = 0 To 10
-'List1.AddItem discreresult(i, j)
-'Next j
-'List1.AddItem ""
-'Next i
-
-'For i = 0 To 7
-'List1.AddItem ""
-'For j = 0 To 8
-'List1.AddItem discreresult(i, j)
-'Next j
-'Next i
-'-------------------------
 attr9array(0) = "CYT"
 attr9array(1) = "NUC"
 attr9array(2) = "MIT"
@@ -855,29 +720,11 @@ totalh(8) = h(attr9str, 0)
 '-------------------------
 eachinterval = CountEachAttr(discreresult)
 
-'List1.AddItem eachinterval
-'aaa = Split(eachinterval, " ")
-'For i = 0 To UBound(aaa)
-'List1.AddItem aaa(i)
-'Next i
-'GoTo Number
 
 For i = 0 To 7
 num = i
 totalh(i) = h(eachinterval, num)
-'List1.AddItem ""
 Next i
-
-
-
-'For i = 0 To 8
-'    List1.AddItem totalh(i)
-'Next i
-    
-'If 0.3 = 0.3 Then
-'    'List1.AddItem "equal"
-'    List1.AddItem data2darray(8, 9)
-'End If
 
 
 '每個attr的h值
@@ -904,26 +751,16 @@ Next i
 
 'List1.AddItem HAB2darray(1, 4)
 'List1.AddItem HAB2darray(4, 1)
-'GoTo habh
+
 
 For i = 0 To 7
-ccountac = countac(discreresult, i, attr9array) '問題出在這裡
+ccountac = countac(discreresult, i, attr9array)
 totalhab(i, 8) = htwo(ccountac)
 totalhab(8, i) = htwo(ccountac)
 'List1.AddItem ""
 Next i
 totalhab(8, 8) = totalh(8)
 
-
-'For i = 0 To 7
-'For j = 0 To 7
-'If i = j Then
-'totalhab(i, i) = totalh(i)
-'Else
-'totalhab(j, i) = totalhab(i, j)
-'End If
-'Next j
-'Next i
 
 '印出H跟HAB值
 'For i = 0 To 8
@@ -949,17 +786,6 @@ totalhab(8, 8) = totalh(8)
 'List1.AddItem totalhab(7, 4)
 
 
-
-
-'List1.AddItem totalhab(2, 7)
-'List1.AddItem totalhab(7, 2)
-
-
-'List1.AddItem totalhab(6, 1)
-'GoTo haabb
-'List1.AddItem totalhab(6, 6)
-'List1.AddItem testhtwo
-'List1.AddItem ""
 For i = 0 To 7
 totaluac(i) = uab(i, 8)
 'List1.AddItem totaluac(i)
@@ -1055,7 +881,6 @@ End Sub
 
 
 Private Sub Equal_frequency_Click()
-'還沒處理最大最小值
 List1.Clear
 choicefb = 1
 Dim widtharray(1483) As Double
@@ -1210,36 +1035,8 @@ Else
 'entropy
 End If
 
-'For j = 0 To 7
-'For i = 0 To 10
-'List1.AddItem discreresult(j, i)
-'Next i
-'List1.AddItem ""
-'Next j
 
 
-
-'For i = 0 To 1483
-''If data2darray(4, i) = "" Then
-''List1.AddItem i
-''End If
-'List1.AddItem data2darray(4, i)
-'Next i
-
-
-'For i = 0 To 7
-'For j = 0 To 10
-'List1.AddItem discreresult(i, j)
-'Next j
-'List1.AddItem ""
-'Next i
-
-'For i = 0 To 7
-'List1.AddItem ""
-'For j = 0 To 8
-'List1.AddItem discreresult(i, j)
-'Next j
-'Next i
 '-------------------------
 attr9array(0) = "CYT"
 attr9array(1) = "NUC"
@@ -1270,12 +1067,6 @@ totalh(8) = h(attr9str, 0)
 '-------------------------
 eachinterval = CountEachAttr(discreresult)
 
-'List1.AddItem eachinterval
-'aaa = Split(eachinterval, " ")
-'For i = 0 To UBound(aaa)
-'List1.AddItem aaa(i)
-'Next i
-'GoTo Number
 
 For i = 0 To 7
 num = i
@@ -1284,15 +1075,6 @@ totalh(i) = h(eachinterval, num)
 Next i
 
 
-
-'For i = 0 To 8
-'    List1.AddItem totalh(i)
-'Next i
-
-'If 0.3 = 0.3 Then
-'    'List1.AddItem "equal"
-'    List1.AddItem data2darray(8, 9)
-'End If
 
 
 '每個attr的h值
@@ -1370,7 +1152,7 @@ totaluac(i) = uab(i, 8)
 'List1.AddItem totaluac(i)
 Next i
 
-'問題出再下面的分母是0
+
 For i = 0 To 7
     For j = 0 To 7
         totaluab(i, j) = uab(i, j)
@@ -1394,20 +1176,21 @@ Next i
 'List1.AddItem totaluab(i, j)
 'Next j
 'List1.AddItem totaluac(i)
+'List1.AddItem ""
 'Next i
 
 
 '測試goodness值
 'Dim goodnessresult As Double
-'Dim testsubsetgoodness(3) As Double
+'Dim testsubsetgoodness(4) As Double
 'goodnessresult = 0
 'testsubsetgoodness(0) = 0
 'testsubsetgoodness(1) = 1
 'testsubsetgoodness(2) = 2
 'testsubsetgoodness(3) = 3
-''testsubsetgoodness(4) = 7
-''testsubsetgoodness(5) = 7
-''testsubsetgoodness(6) = 7
+'testsubsetgoodness(4) = 7
+'''testsubsetgoodness(5) = 7
+'''testsubsetgoodness(6) = 7
 'goodnessresult = subsetgoodness(testsubsetgoodness)
 'List1.AddItem goodnessresult
 
@@ -1454,6 +1237,10 @@ List1.AddItem testtotalsub
 
 'GoTo endd
 'endd:
+End Sub
+
+Private Sub List1_Click()
+
 End Sub
 
 Private Sub read_Click()
